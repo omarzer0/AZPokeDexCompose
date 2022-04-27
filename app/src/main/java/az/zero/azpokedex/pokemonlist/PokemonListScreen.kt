@@ -189,7 +189,7 @@ fun PokeDexEntry(
     ) {
         Column {
             GlideImage( // CoilImage, FrescoImage
-                imageModel = entry.imageUrl + "dsadsa",
+                imageModel = entry.imageUrl,
                 contentScale = ContentScale.Fit,
                 loading = {
                     CircularProgressIndicator(
