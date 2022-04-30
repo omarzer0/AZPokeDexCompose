@@ -1,7 +1,7 @@
 package az.zero.azpokedex.utils
 
-sealed class Resource<T>(val data: T? = null, val message: String? = null) {
-    data class Success<T>(val mData: T) : Resource<T>(mData)
-    data class Error<T>(val mMessage: String, val mData: T? = null) : Resource<T>(mData, mMessage)
-//    data class Loading<T>(val mData: T? = null) : Resource<T>(mData)
+sealed class Resource<T> {
+    class Success<T>(val data: T) : Resource<T>()
+    class Error<T>(val message: String,val  data: T? = null) : Resource<T>()
+    class Loading<T>(val data: T? = null) : Resource<T>()
 }

@@ -1,7 +1,5 @@
-package az.zero.azpokedex.pokemonlist
+package az.zero.azpokedex.screens.pokemonlist
 
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -16,6 +14,8 @@ import az.zero.azpokedex.repository.PokemonRepository
 import az.zero.azpokedex.utils.PAGE_SIZE
 import az.zero.azpokedex.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -25,11 +25,36 @@ class PokemonListViewModel @Inject constructor(
     private val repository: PokemonRepository
 ) : ViewModel() {
 
-    private val currentPage = 0
+    private var currentPage = 0
     var pokemonList = mutableStateOf<List<PokeDexListEntry>>(listOf())
+
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
+
+    private var cachedPokemonList = listOf<PokeDexListEntry>()
+    var isSearching = mutableStateOf(false)
+
+    fun searchPokemonList(query: String) {
+        val trimmedQuery = query.trim()
+        if (pokemonList.value.size > cachedPokemonList.size) cachedPokemonList = pokemonList.value
+
+
+        if (trimmedQuery.isEmpty()) {
+            pokemonList.value = cachedPokemonList
+            cachedPokemonList = emptyList()
+            isSearching.value = false
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.Default) {
+            val searchResult = cachedPokemonList.filter {
+                it.pokemonName.contains(trimmedQuery, true) || it.number.toString() == trimmedQuery
+            }
+            pokemonList.value = searchResult
+            isSearching.value = true
+        }
+    }
 
     fun loadPokemonPaginated() {
         viewModelScope.launch {
@@ -37,10 +62,12 @@ class PokemonListViewModel @Inject constructor(
             val result = repository.getPokemonList(PAGE_SIZE, currentPage * PAGE_SIZE)
             Timber.e(result.toString())
 
+            Timber.d("currentPage= $currentPage")
             when (result) {
                 is Resource.Success -> {
+                    currentPage++
                     endReached.value = currentPage * PAGE_SIZE >= result.data?.count ?: 0
-                    val pokeDexEntries = result.mData.results.mapIndexed { index, entry ->
+                    val pokeDexEntries = result.data.results.mapIndexed { index, entry ->
                         val number = if (entry.url.endsWith("/")) {
                             entry.url.dropLast(1).takeLastWhile { it.isDigit() }
                         } else {
@@ -60,7 +87,7 @@ class PokemonListViewModel @Inject constructor(
                     pokemonList.value = pokemonList.value + pokeDexEntries
                 }
                 is Resource.Error -> {
-                    loadError.value = result.mMessage
+                    loadError.value = result.message
                     isLoading.value = false
                 }
             }
@@ -83,3 +110,30 @@ class PokemonListViewModel @Inject constructor(
     }
 
 }
+
+// val listToSearch = if (isSearchStarting) {
+//            pokemonList.value
+//        } else {
+//            cachedPokemonList
+//        }
+//
+//        viewModelScope.launch(Dispatchers.Default) {
+//            if (query.isEmpty()) {
+//                pokemonList.value = cachedPokemonList
+//                isSearching.value = false
+//                isSearchStarting = true
+//                return@launch
+//            }
+//
+//            val result = listToSearch.filter {
+//                it.pokemonName.contains(query.trim()) ||
+//                        it.number.toString() == query.trim()
+//            }
+//
+//            if (isSearchStarting) {
+//                cachedPokemonList = pokemonList.value
+//                isSearchStarting = false
+//            }
+//            pokemonList.value = result
+//            isSearchStarting = true
+//        }

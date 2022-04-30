@@ -109,4 +109,7 @@ dependencies {
 
     implementation 'androidx.palette:palette-ktx:1.0.0'
     implementation 'androidx.palette:palette:1.0.0'
+
+    // Compose Utils library
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.23.1"
 }
