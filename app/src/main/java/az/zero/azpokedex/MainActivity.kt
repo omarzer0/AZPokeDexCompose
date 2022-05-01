@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     composable(SCREEN_POKEMON_LIST) {
                         // all content of the poke list screen
                         ChangeStatusBarColor(
-                            statusColor = MaterialTheme.colors.primaryVariant,
+                            statusColor =  MaterialTheme.colors.background,
                             systemUiController = systemUiController
                         )
                         PokemonListScreen(navController = navController)
