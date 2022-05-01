@@ -145,7 +145,9 @@ fun PokemonList(
             Timber.e(itemCount.toString())
             if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
                 // Paginate
-                viewModel.loadPokemonPaginated()
+                LaunchedEffect(key1 = true) {
+                    viewModel.loadPokemonPaginated()
+                }
             }
             PokeDexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
@@ -201,13 +203,6 @@ fun PokeDexEntry(
                 contentScale = ContentScale.Fit,
                 loading = {
                     LoadingProgressBar(sizeFraction = 0.5f)
-
-//                    CircularProgressIndicator(
-//                        modifier = Modifier
-//                            .fillMaxSize(0.5f)
-//                            .align(Center),
-//                        color = MaterialTheme.colors.primary
-//                    )
                 },
                 success = { imageState ->
                     imageState.drawable?.let {

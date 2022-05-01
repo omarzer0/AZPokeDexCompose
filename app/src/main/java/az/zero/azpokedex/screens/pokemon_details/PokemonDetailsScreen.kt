@@ -48,7 +48,6 @@ fun PokemonDetailsScreen(
     dominantColor: Color,
     pokemonName: String,
     navController: NavController,
-    topPadding: Dp = 20.dp,
     pokemonImageSize: Dp = 200.dp,
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
@@ -57,7 +56,7 @@ fun PokemonDetailsScreen(
     }
     // Parent of all views in the screen
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(dominantColor)
@@ -73,7 +72,7 @@ fun PokemonDetailsScreen(
             pokemonInfo = pokemonInfo,
             modifier = Modifier
                 .padding(
-                    top = topPadding + pokemonImageSize / 2f,
+                    top = 16.dp,
                     start = 16.dp,
                     end = 16.dp,
                     bottom = 16.dp
@@ -84,12 +83,11 @@ fun PokemonDetailsScreen(
             loadingModifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = topPadding + pokemonImageSize / 2f,
+                    top = 16.dp,
                     start = 16.dp,
                     end = 16.dp,
                     bottom = 16.dp
                 ),
-            topPadding = topPadding,
             pokemonImageSize = pokemonImageSize
         )
     }
@@ -117,11 +115,9 @@ fun DetailsTopSection(
 fun PokemonImage(
     pokemonInfo: Pokemon,
     pokemonImageSize: Dp,
-    topPadding: Dp,
-    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
         val image = pokemonInfo.sprites.frontDefault
@@ -131,7 +127,7 @@ fun PokemonImage(
             error = painterResource(id = R.drawable.ic_height),
             modifier = Modifier
                 .size(pokemonImageSize)
-                .offset(y = topPadding)
+                .offset(y = -(pokemonImageSize / 2 - 16.dp))
         )
     }
 }
@@ -141,7 +137,6 @@ fun DetailsBodySection(
     pokemonInfo: Resource<Pokemon>,
     modifier: Modifier = Modifier,
     loadingModifier: Modifier = Modifier,
-    topPadding: Dp,
     pokemonImageSize: Dp
 ) {
 
@@ -151,8 +146,7 @@ fun DetailsBodySection(
         is Resource.Success -> SuccessBodySection(
             pokemonInfo.data,
             pokemonImageSize,
-            modifier,
-            topPadding
+            modifier
         )
     }
 
@@ -175,34 +169,37 @@ fun SuccessBodySection(
     pokemonInfo: Pokemon,
     pokemonImageSize: Dp,
     modifier: Modifier,
-    topPadding: Dp
 ) {
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .fillMaxSize()
-            .offset(y = 100.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "#${pokemonInfo.id} ${pokemonInfo.name.capitalize(Locale.ROOT)}",
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.onSurface,
-            fontSize = 30.sp,
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top =  pokemonImageSize / 2 )
+        ) {
+            Text(
+                text = "#${pokemonInfo.id} ${pokemonInfo.name.capitalize(Locale.ROOT)}",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.onSurface,
+                fontSize = 30.sp,
+            )
+            TypeSection(types = pokemonInfo.types)
+            DataSection(pokemonInfo.weight, pokemonInfo.height)
+
+            PokemonBaseStat(pokemonInfo = pokemonInfo)
+        }
+
+        PokemonImage(
+            pokemonInfo,
+            pokemonImageSize,
         )
-        TypeSection(types = pokemonInfo.types)
-        DataSection(pokemonInfo.weight, pokemonInfo.height)
-
-        PokemonBaseStat(pokemonInfo = pokemonInfo)
-
     }
 
-    PokemonImage(
-        pokemonInfo,
-        pokemonImageSize,
-        topPadding
-    )
 
 }
 
@@ -312,6 +309,7 @@ fun PokemonStat(
         animationPlayed = true
     }
 
+    Spacer(modifier = Modifier.height(10.dp))
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -348,6 +346,17 @@ fun PokemonBaseStat(
 ) {
     val maxBaseStat = remember { pokemonInfo.stats.maxOf { it.baseStat } }
 
+    Text(
+        text = "Base stats:",
+        fontSize = 20.sp,
+        color = MaterialTheme.colors.onSurface,
+        textAlign = TextAlign.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+        fontWeight = FontWeight.Bold,
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -355,16 +364,6 @@ fun PokemonBaseStat(
             .verticalScroll(rememberScrollState())
 
     ) {
-        Text(
-            text = "Base stats:",
-            fontSize = 20.sp,
-            color = MaterialTheme.colors.onSurface,
-            textAlign = TextAlign.Start,
-            modifier = Modifier.fillMaxWidth(),
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-
         repeat(pokemonInfo.stats.size) { index ->
             val stat = pokemonInfo.stats[index]
             PokemonStat(
