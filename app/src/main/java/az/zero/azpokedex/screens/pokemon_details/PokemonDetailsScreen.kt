@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import az.zero.azpokedex.R
 import az.zero.azpokedex.screens.common.BackButton
+import az.zero.azpokedex.screens.common.ChangeStatusBarColor
 import az.zero.azpokedex.screens.common.LoadingProgressBar
 import az.zero.azpokedex.screens.common.RetrySection
 import az.zero.azpokedex.utils.Resource
@@ -38,24 +38,28 @@ import az.zero.azpokedex.utils.parseStatToColor
 import az.zero.azpokedex.utils.parseTypeToColor
 import com.plcoding.jetpackcomposepokedex.data.remote.responses.Pokemon
 import com.plcoding.jetpackcomposepokedex.data.remote.responses.Type
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.skydoves.landscapist.glide.GlideImage
 import java.util.*
 import kotlin.math.round
 
-
+@Destination()
 @Composable
 fun PokemonDetailsScreen(
     dominantColor: Color,
     pokemonName: String,
-    navController: NavController,
+    navigator: DestinationsNavigator,
     pokemonImageSize: Dp = 200.dp,
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
     val pokemonInfo by produceState<Resource<Pokemon>>(initialValue = Resource.Loading()) {
-        value = viewModel.getPokemonInfo(pokemonName)
+        value = viewModel.getPokemonInfo(pokemonName.lowercase())
     }
-    // Parent of all views in the screen
 
+    ChangeStatusBarColor(statusColor = dominantColor)
+
+    // Parent of all views in the screen
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,7 +67,7 @@ fun PokemonDetailsScreen(
             .padding(bottom = 16.dp)
     ) {
         DetailsTopSection(
-            navController,
+            navigator,
             modifier = Modifier.fillMaxWidth(),
             dominantColor
         )
@@ -96,7 +100,7 @@ fun PokemonDetailsScreen(
 
 @Composable
 fun DetailsTopSection(
-    navController: NavController,
+    navigator: DestinationsNavigator,
     modifier: Modifier = Modifier,
     dominantColor: Color
 ) {
@@ -106,7 +110,7 @@ fun DetailsTopSection(
 
     ) {
         BackButton(colorTOChooseWhiteOrBlackFrom = dominantColor) {
-            navController.popBackStack()
+            navigator.popBackStack()
         }
     }
 }
@@ -179,7 +183,7 @@ fun SuccessBodySection(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
                 .fillMaxSize()
-                .padding(top =  pokemonImageSize / 2 )
+                .padding(top = pokemonImageSize / 2)
         ) {
             Text(
                 text = "#${pokemonInfo.id} ${pokemonInfo.name.capitalize(Locale.ROOT)}",

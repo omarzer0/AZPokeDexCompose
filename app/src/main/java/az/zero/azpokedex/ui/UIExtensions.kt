@@ -6,13 +6,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.core.text.layoutDirection
-import az.zero.azpokedex.utils.SUPPORT_RTL
 import java.util.*
-
 
 @Stable
 fun Modifier.mirror(): Modifier {
-    if (!SUPPORT_RTL) return this
     return if (Locale.getDefault().layoutDirection == LayoutDirection.RTL)
         this.scale(scaleX = -1f, scaleY = 1f)
     else

@@ -3,6 +3,22 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'kotlin-parcelize'
+    // Depends on your kotlin version
+    // Search here by you kotlin version-> https://github.com/google/ksp/releases
+    id 'com.google.devtools.ksp' version "1.6.10-1.0.4"
+}
+
+// For navigation generated classes
+kotlin {
+    sourceSets {
+        debug {
+            kotlin.srcDir("build/generated/ksp/debug/kotlin")
+        }
+        release {
+            kotlin.srcDir("build/generated/ksp/release/kotlin")
+        }
+    }
 }
 
 android {
@@ -33,6 +49,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+        useIR = true
     }
     buildFeatures {
         compose true
@@ -102,7 +119,6 @@ dependencies {
     implementation "com.github.skydoves:landscapist-glide:1.5.1"
 
 
-
     //Dagger - Hilt
     implementation "com.google.dagger:hilt-android:2.41"
     kapt "com.google.dagger:hilt-android-compiler:2.38"
@@ -116,5 +132,9 @@ dependencies {
     // Compose Utils library
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.23.1"
     implementation "com.google.accompanist:accompanist-flowlayout:0.23.1"
+
+    // Simple navigation
+    implementation 'io.github.raamcosta.compose-destinations:core:1.5.2-beta'
+    ksp 'io.github.raamcosta.compose-destinations:ksp:1.5.2-beta'
 
 }

@@ -2,7 +2,6 @@ package az.zero.azpokedex.screens.pokemonlist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +11,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -21,31 +21,37 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import az.zero.azpokedex.R
 import az.zero.azpokedex.data.models.PokeDexListEntry
+import az.zero.azpokedex.screens.common.ChangeStatusBarColor
 import az.zero.azpokedex.screens.common.LoadingProgressBar
 import az.zero.azpokedex.screens.common.RetrySection
+import az.zero.azpokedex.screens.destinations.PokemonDetailsScreenDestination
+import az.zero.azpokedex.ui.clickableSafeClick
 import az.zero.azpokedex.ui.theme.RobotoCondensed
-import az.zero.azpokedex.utils.SCREEN_POKEMON_DETAILS
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.skydoves.landscapist.CircularReveal
 import com.skydoves.landscapist.CircularRevealImage
 import com.skydoves.landscapist.glide.GlideImage
 import timber.log.Timber
 
+@RootNavGraph(start = true)
+@Destination
 @Composable
 fun PokemonListScreen(
-    navController: NavController,
+    navigator: DestinationsNavigator,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
+    ChangeStatusBarColor(statusColor = MaterialTheme.colors.background)
+
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
@@ -70,7 +76,7 @@ fun PokemonListScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            PokemonList(navController = navController)
+            PokemonList(navigator = navigator)
         }
 
     }
@@ -82,7 +88,7 @@ fun SearchBar(
     hint: String = "",
     onSearch: (String) -> Unit = {},
 ) {
-    var text by remember {
+    var text by rememberSaveable {
         mutableStateOf("")
     }
 
@@ -125,7 +131,7 @@ fun SearchBar(
 
 @Composable
 fun PokemonList(
-    navController: NavController,
+    navigator: DestinationsNavigator,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
     val pokemonList by remember { viewModel.pokemonList }
@@ -149,7 +155,7 @@ fun PokemonList(
                     viewModel.loadPokemonPaginated()
                 }
             }
-            PokeDexRow(rowIndex = it, entries = pokemonList, navController = navController)
+            PokeDexRow(rowIndex = it, entries = pokemonList, navigator = navigator)
         }
     }
 
@@ -168,7 +174,7 @@ fun PokemonList(
 @Composable
 fun PokeDexEntry(
     entry: PokeDexListEntry,
-    navController: NavController,
+    navigator: DestinationsNavigator,
     modifier: Modifier = Modifier,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
@@ -193,8 +199,13 @@ fun PokeDexEntry(
                     )
                 )
             )
-            .clickable {
-                navController.navigate("${SCREEN_POKEMON_DETAILS}/${dominantColor.toArgb()}/${entry.pokemonName}")
+            .clickableSafeClick {
+                navigator.navigate(
+                    PokemonDetailsScreenDestination(
+                        dominantColor = dominantColor,
+                        pokemonName = entry.pokemonName
+                    )
+                )
             }
     ) {
         Column {
@@ -257,20 +268,20 @@ fun BitmapImage(
 fun PokeDexRow(
     rowIndex: Int,
     entries: List<PokeDexListEntry>,
-    navController: NavController
+    navigator: DestinationsNavigator
 ) {
 
     Column {
         Row {
             PokeDexEntry(
-                entry = entries[rowIndex * 2], navController = navController,
+                entry = entries[rowIndex * 2], navigator = navigator,
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
 
             if (entries.size >= rowIndex * 2 + 2) {
                 PokeDexEntry(
-                    entry = entries[rowIndex * 2 + 1], navController = navController,
+                    entry = entries[rowIndex * 2 + 1], navigator = navigator,
                     modifier = Modifier.weight(1f)
                 )
             } else {
@@ -281,11 +292,3 @@ fun PokeDexRow(
     }
 
 }
-
-//@Preview
-@Composable
-fun Preview() {
-    val navController = rememberNavController()
-    PokemonListScreen(navController = navController)
-}
-
